@@ -2,8 +2,6 @@ import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js'
 import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'
 
-alert('MAIN.JS ÇALIŞIYOR')
-
 /* =====================
    GLOBAL CSS
 ===================== */
@@ -80,7 +78,7 @@ const camera = new THREE.PerspectiveCamera(
 ===================== */
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.setPixelRatio(1)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 document.body.appendChild(renderer.domElement)
 
 /* =====================
@@ -98,6 +96,11 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.enabled = false
 controls.target.set(0, 0, 0)
+controls.mouseButtons = {
+  LEFT: THREE.MOUSE.ROTATE,
+  MIDDLE: THREE.MOUSE.PAN,
+  RIGHT: THREE.MOUSE.DOLLY
+}
 
 /* =====================
    MODEL
@@ -169,8 +172,8 @@ function animate() {
 
   pins.forEach(p => {
     const v = p.pos.clone().project(camera)
-    p.el.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`
-    p.el.style.top  = `${(-v.y * 0.5 + 0.5) * innerHeight}px`
+    p.el.style.left = `${(v.x * 0.5 + 0.5) * window.innerWidth}px`
+    p.el.style.top  = `${(-v.y * 0.5 + 0.5) * window.innerHeight}px`
   })
 
   renderer.render(scene, camera)
