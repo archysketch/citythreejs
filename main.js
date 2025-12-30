@@ -98,12 +98,10 @@ controls.mouseButtons = {
 }
 
 
-/* =====================
-   MODEL
-===================== */
-new GLTFLoader().load('/lowpoly.glb', gltf => {
+new GLTFLoader().load('./lowpoly.glb', gltf => {
   scene.add(gltf.scene)
 })
+
 
 /* =====================
    INTRO ANIMATION
