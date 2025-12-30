@@ -1,6 +1,6 @@
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js'
+import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js'
 
 /* =====================
    GLOBAL CSS
@@ -96,11 +96,6 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.enabled = false
 controls.target.set(0, 0, 0)
-controls.mouseButtons = {
-  LEFT: THREE.MOUSE.ROTATE,
-  MIDDLE: THREE.MOUSE.PAN,
-  RIGHT: THREE.MOUSE.DOLLY
-}
 
 /* =====================
    MODEL
@@ -110,7 +105,7 @@ new GLTFLoader().load('./lowpoly.glb', gltf => {
 })
 
 /* =====================
-   INTRO ANIMATION
+   INTRO
 ===================== */
 let introFrame = 0
 const introDuration = 160
@@ -118,41 +113,14 @@ const introStart = { r: 520, a: Math.PI * 0.75, h: 260 }
 const introEnd   = { r: 60,  a: Math.PI * 1.15, h: 40 }
 
 /* =====================
-   PIN DATA
+   PINS
 ===================== */
 const pins = [
-  {
-    id: 1,
-    pos: new THREE.Vector3(10, 15, 0),
-    text: 'Merkez Bina',
-    cam: { r: 80, a: Math.PI * 1.25, h: 55 }
-  },
-  {
-    id: 2,
-    pos: new THREE.Vector3(-20, 10, 15),
-    text: 'Sosyal Alan',
-    cam: { r: 80, a: Math.PI * 1.25, h: 55 }
-  },
-  {
-    id: 3,
-    pos: new THREE.Vector3(15, 8, -20),
-    text: 'Yeşil Bölge',
-    cam: { r: 80, a: Math.PI * 0.25, h: 55 }
-  }
+  { id: 1, pos: new THREE.Vector3(10, 15, 0), text: 'Merkez Bina' },
+  { id: 2, pos: new THREE.Vector3(-20, 10, 15), text: 'Sosyal Alan' },
+  { id: 3, pos: new THREE.Vector3(15, 8, -20), text: 'Yeşil Bölge' }
 ]
 
-/* =====================
-   PIN STATE
-===================== */
-let activePin = null
-let focusT = 1
-
-let camFrom = { r: 0, a: 0, h: 0, target: new THREE.Vector3() }
-let camTo   = { r: 0, a: 0, h: 0, target: new THREE.Vector3() }
-
-/* =====================
-   PIN ELEMENTS
-===================== */
 pins.forEach(p => {
   const el = document.createElement('div')
   el.className = 'pin'
@@ -160,36 +128,11 @@ pins.forEach(p => {
   pinLayer.appendChild(el)
   p.el = el
 
-  el.addEventListener('click', () => {
-    activePin = p
+  el.onclick = () => {
     tooltip.innerText = p.text
     tooltip.style.display = 'block'
-
-    camFrom.r = camera.position.distanceTo(controls.target)
-    camFrom.a = Math.atan2(
-      camera.position.z - controls.target.z,
-      camera.position.x - controls.target.x
-    )
-    camFrom.h = camera.position.y
-    camFrom.target.copy(controls.target)
-
-    camTo.r = p.cam.r
-    camTo.a = p.cam.a
-    camTo.h = p.cam.h
-    camTo.target.copy(p.pos)
-
-    let delta = camTo.a - camFrom.a
-    delta = Math.atan2(Math.sin(delta), Math.cos(delta))
-    camTo.a = camFrom.a + delta
-
-    focusT = 0
-
-    clearTimeout(tooltip._t)
-    tooltip._t = setTimeout(() => {
-      tooltip.style.display = 'none'
-      activePin = null
-    }, 5000)
-  })
+    setTimeout(() => tooltip.style.display = 'none', 3000)
+  }
 })
 
 /* =====================
@@ -208,7 +151,7 @@ function animate() {
   requestAnimationFrame(animate)
 
   if (introFrame < introDuration) {
-    const t = THREE.MathUtils.smoothstep(introFrame / introDuration, 0, 1)
+    const t = introFrame / introDuration
     const r = THREE.MathUtils.lerp(introStart.r, introEnd.r, t)
     const a = THREE.MathUtils.lerp(introStart.a, introEnd.a, t)
     const h = THREE.MathUtils.lerp(introStart.h, introEnd.h, t)
@@ -220,37 +163,12 @@ function animate() {
     controls.enabled = true
   }
 
-  if (focusT < 1) {
-    focusT += 0.015
-    const t = THREE.MathUtils.smoothstep(focusT, 0, 1)
-
-    const r = THREE.MathUtils.lerp(camFrom.r, camTo.r, t)
-    const a = THREE.MathUtils.lerp(camFrom.a, camTo.a, t)
-    const h = THREE.MathUtils.lerp(camFrom.h, camTo.h, t)
-
-    controls.target.lerpVectors(camFrom.target, camTo.target, t)
-
-    camera.position.set(
-      controls.target.x + Math.cos(a) * r,
-      h,
-      controls.target.z + Math.sin(a) * r
-    )
-  }
-
   controls.update()
 
   pins.forEach(p => {
     const v = p.pos.clone().project(camera)
-    const x = (v.x * 0.5 + 0.5) * window.innerWidth
-    const y = (-v.y * 0.5 + 0.5) * window.innerHeight
-
-    p.el.style.left = `${x}px`
-    p.el.style.top = `${y}px`
-
-    if (activePin === p) {
-      tooltip.style.left = `${x}px`
-      tooltip.style.top = `${y}px`
-    }
+    p.el.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`
+    p.el.style.top  = `${(-v.y * 0.5 + 0.5) * innerHeight}px`
   })
 
   renderer.render(scene, camera)
